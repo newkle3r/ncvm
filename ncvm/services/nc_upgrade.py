@@ -60,8 +60,17 @@ class NextcloudUpgradeService:
             src = nc / sub
             if self.runner.sudo(["test", "-d", str(src)], stream=False, check=False).returncode == 0:
                 console.print(f"[cyan]Backup: rsync {src} -> {backup}[/cyan]")
+                # Helps operators understand why rsync may look "stuck".
+                self.runner.sudo(["du", "-sh", str(src)], stream=True, check=False)
                 self.runner.sudo(
-                    ["rsync", "-Aax", str(src) + "/", str(backup / sub) + "/"],
+                    [
+                        "rsync",
+                        "-Aax",
+                        "--human-readable",
+                        "--info=progress2",
+                        str(src) + "/",
+                        str(backup / sub) + "/",
+                    ],
                     stream=True,
                     check=True,
                 )
