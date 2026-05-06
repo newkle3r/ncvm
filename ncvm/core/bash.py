@@ -24,11 +24,8 @@ class CmdResult:
 
 
 def _run(cmd: Sequence[str], *, check: bool = False, capture: bool = True) -> CmdResult:
-    p = subprocess.run(
-        list(cmd),
-        text=True,
-        capture_output=capture,
-    )
+    p = subprocess.run(list(cmd), text=True, capture_output=capture)
+    # När capture=False är stdout/stderr None och output går direkt till terminalen.
     res = CmdResult(list(cmd), p.returncode, p.stdout or "", p.stderr or "")
     if check and not res.ok:
         raise subprocess.CalledProcessError(res.returncode, res.cmd, output=res.stdout, stderr=res.stderr)
@@ -85,15 +82,21 @@ def ensure_script(name: str, *, settings: Settings | None = None) -> Path:
     return script_path
 
 
-def run_script(name: str, args: list[str] | None = None, *, sudo: bool = True) -> CmdResult:
+def run_script(
+    name: str,
+    args: list[str] | None = None,
+    *,
+    sudo: bool = True,
+    stream: bool = True,
+) -> CmdResult:
     script = ensure_script(name)
     cmd = [str(script), *(args or [])]
     cmd = _maybe_sudo(cmd, sudo=sudo)
     console.print(f"[cyan]Kör:[/cyan] {shlex.join(cmd)}")
-    return _run(cmd, capture=True)
+    return _run(cmd, capture=not stream)
 
 
-def run_bash(command: str, *, sudo: bool = True) -> CmdResult:
+def run_bash(command: str, *, sudo: bool = True, stream: bool = True) -> CmdResult:
     """
     Kör ett bash-kommando via `bash -lc`.
     Används för att t.ex. `source`a `lib.sh` och anropa en funktion.
@@ -101,10 +104,16 @@ def run_bash(command: str, *, sudo: bool = True) -> CmdResult:
     cmd = ["bash", "-lc", command]
     cmd = _maybe_sudo(cmd, sudo=sudo)
     console.print(f"[cyan]Kör:[/cyan] {shlex.join(cmd)}")
-    return _run(cmd, capture=True)
+    return _run(cmd, capture=not stream)
 
 
-def source_lib_and_call(func_call: str, *, sudo: bool = True, settings: Settings | None = None) -> CmdResult:
+def source_lib_and_call(
+    func_call: str,
+    *,
+    sudo: bool = True,
+    settings: Settings | None = None,
+    stream: bool = True,
+) -> CmdResult:
     """
     Kör `source <(curl -sL .../lib.sh)` och anropar `func_call`.
     Exempel: func_call="calculate_php_fpm"
@@ -117,5 +126,5 @@ def source_lib_and_call(func_call: str, *, sudo: bool = True, settings: Settings
         lib_url = f"{st.github_base.rstrip('/')}/lib.sh"
         source_cmd = f"source <(curl -fsSL {shlex.quote(lib_url)})"
     safe = f"set -euo pipefail; {source_cmd}; {func_call}"
-    return run_bash(safe, sudo=sudo)
+    return run_bash(safe, sudo=sudo, stream=stream)
 

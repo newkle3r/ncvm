@@ -65,7 +65,8 @@ def run_embedded_script(
         f"set -e; {env_part}bash {shlex.quote(tmp_path)}",
     ]
     console.print(f"[cyan]Kör:[/cyan] {shlex.join(cmd_run)}")
-    res = _run(cmd_run, capture=True)
+    # Streama output så användaren ser allt i realtid
+    res = _run(cmd_run, capture=False)
 
     if not keep_tmp:
         cmd_rm = ["sudo", "rm", "-f", tmp_path] if sudo else ["rm", "-f", tmp_path]
