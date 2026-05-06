@@ -11,19 +11,25 @@ def run_update(
     phpver: str | None = None,
     dry_run: bool = False,
     skip_backup: bool = False,
+    skip_apps_backup: bool = False,
     debug: bool = False,
 ) -> int:
     try:
         svc = UpdateService(debug=debug)
         target = target.lower().strip()
         if target == "nc":
-            r = svc.update_nextcloud(dry_run=dry_run, skip_backup=skip_backup)
+            r = svc.update_nextcloud(dry_run=dry_run, skip_backup=skip_backup, skip_apps_backup=skip_apps_backup)
             return 0 if r.ok else 1
         if target == "php":
             r = svc.update_php(phpver=phpver, dry_run=dry_run)
             return 0 if r.ok else 1
         if target == "all":
-            r = svc.update_all(phpver=phpver, dry_run=dry_run, skip_backup=skip_backup)
+            r = svc.update_all(
+                phpver=phpver,
+                dry_run=dry_run,
+                skip_backup=skip_backup,
+                skip_apps_backup=skip_apps_backup,
+            )
             return 0 if r.ok else 1
         console.print("[red]target måste vara nc, php eller all[/red]")
         return 2

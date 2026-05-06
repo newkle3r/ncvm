@@ -52,11 +52,12 @@ class NextcloudUpgradeService:
             except OSError:
                 pass
 
-    def backup_nextcloud_dirs(self) -> None:
+    def backup_nextcloud_dirs(self, *, skip_apps: bool = False) -> None:
         backup = Path(self.settings.backup_dir)
         nc = Path(self.settings.nextcloud_dir)
         self.runner.sudo(["mkdir", "-p", str(backup)], stream=True, check=True)
-        for sub in ("config", "apps"):
+        subs: tuple[str, ...] = ("config",) if skip_apps else ("config", "apps")
+        for sub in subs:
             src = nc / sub
             if self.runner.sudo(["test", "-d", str(src)], stream=False, check=False).returncode == 0:
                 console.print(f"[cyan]Backup: rsync {src} -> {backup}[/cyan]")
@@ -75,7 +76,7 @@ class NextcloudUpgradeService:
                     check=True,
                 )
 
-    def upgrade_to_latest(self, *, skip_backup: bool = False) -> None:
+    def upgrade_to_latest(self, *, skip_backup: bool = False, skip_apps_backup: bool = False) -> None:
         current = self.occ.version_string()
         if not current:
             raise RuntimeError("Kunde inte läsa nuvarande Nextcloud-version (occ).")
@@ -84,7 +85,7 @@ class NextcloudUpgradeService:
         self.write_major_hint(current)
 
         if not skip_backup:
-            self.backup_nextcloud_dirs()
+            self.backup_nextcloud_dirs(skip_apps=skip_apps_backup)
 
         stable = f"nextcloud-{latest}"
         base = self.settings.nc_download_base.rstrip("/")

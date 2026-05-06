@@ -36,6 +36,11 @@ def update_cmd(
         "--skip-backup",
         help="Hoppa över rsync-backup av config+apps före Nextcloud-uppgradering.",
     ),
+    skip_apps_backup: bool = typer.Option(
+        False,
+        "--skip-apps-backup",
+        help="Backa bara upp config (hoppa över apps/) före Nextcloud-uppgradering.",
+    ),
     debug: bool = typer.Option(False, "--debug", help="Verbose loggning (DEBUG)."),
 ):
     if debug:
@@ -45,6 +50,7 @@ def update_cmd(
         phpver=phpver,
         dry_run=dry_run,
         skip_backup=skip_backup,
+        skip_apps_backup=skip_apps_backup,
         debug=debug,
     )
     raise typer.Exit(code)

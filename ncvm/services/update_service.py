@@ -104,7 +104,13 @@ class UpdateService:
 
         return UpdateResult(True, f"PHP {ver} installerad.")
 
-    def update_nextcloud(self, *, dry_run: bool = False, skip_backup: bool = False) -> UpdateResult:
+    def update_nextcloud(
+        self,
+        *,
+        dry_run: bool = False,
+        skip_backup: bool = False,
+        skip_apps_backup: bool = False,
+    ) -> UpdateResult:
         if dry_run:
             console.print("[yellow]DRY-RUN: skulle köra Nextcloud-uppgradering[/yellow]")
             return UpdateResult(True, "dry-run")
@@ -112,7 +118,7 @@ class UpdateService:
         self.apt.wait_for_lock()
         self.occ.maintenance_on()
         try:
-            self.nc_upgrade.upgrade_to_latest(skip_backup=skip_backup)
+            self.nc_upgrade.upgrade_to_latest(skip_backup=skip_backup, skip_apps_backup=skip_apps_backup)
         finally:
             self.occ.maintenance_off()
 
@@ -124,8 +130,9 @@ class UpdateService:
         phpver: str | None = None,
         dry_run: bool = False,
         skip_backup: bool = False,
+        skip_apps_backup: bool = False,
     ) -> UpdateResult:
-        r1 = self.update_nextcloud(dry_run=dry_run, skip_backup=skip_backup)
+        r1 = self.update_nextcloud(dry_run=dry_run, skip_backup=skip_backup, skip_apps_backup=skip_apps_backup)
         if not r1.ok:
             return r1
         r2 = self.update_php(phpver=phpver, dry_run=dry_run)
