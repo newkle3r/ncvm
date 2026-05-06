@@ -1,6 +1,6 @@
 # ncvm
 
-`ncvm` är ett Python CLI som orkestrerar Nextcloud VM-skripten (`lib.sh`, `n.sh`, `pp.sh`) utan att duplicera deras logik.
+`ncvm` är ett Python CLI som orkestrerar Nextcloud VM.
 
 ## Installera (pipx)
 
