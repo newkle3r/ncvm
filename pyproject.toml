@@ -1,0 +1,27 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ncvm"
+version = "0.1.0"
+description = "Python CLI för service av Nextcloud VM (Ubuntu)."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "ncvm contributors" }]
+dependencies = [
+  "typer>=0.12",
+  "rich>=13.7",
+  "pydantic-settings>=2.2",
+]
+
+[project.scripts]
+ncvm = "ncvm.cli:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["ncvm"]
+include = ["ncvm/scripts/*.sh"]
+
+[tool.ruff]
+line-length = 100
