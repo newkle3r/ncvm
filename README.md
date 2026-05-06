@@ -1,6 +1,10 @@
 # ncvm
 
+<<<<<<< HEAD
 `ncvm` är ett Python CLI för service av Nextcloud VM (Ubuntu). **Uppdateringslogiken körs i Python** (`ncvm/services/`) och anropar systemverktyg (`apt`, `systemctl`, `occ`, …) via subprocess med **live-streamad** utskrift och logg till `/var/log/nextcloud/ncvm.log` (om katalogen finns).
+=======
+`ncvm` är ett Python CLI som orkestrerar Nextcloud VM.
+>>>>>>> 1c5b3a12e4d4411d8d3f1e8f5115712d045680e8
 
 ## Installera (pipx)
 
