@@ -109,7 +109,16 @@ class NextcloudUpgradeService:
         self.runner.sudo(["curl", "-fSL", asc_url, "-o", str(asc_path)], stream=True, check=True)
 
         self.runner.sudo(
-            ["bash", "-lc", f"cd {work} && tail -1 {sha_path.name} | sha256sum -c"],
+            [
+                "bash",
+                "-lc",
+                (
+                    f"cd {work} && "
+                    f"line=$(grep -E '(^| )({tar_path.name})$' {sha_path.name} | tail -n 1) && "
+                    f"test -n \"$line\" && "
+                    f"echo \"$line\" | sha256sum -c"
+                ),
+            ],
             stream=True,
             check=True,
         )
