@@ -108,17 +108,10 @@ class NextcloudUpgradeService:
         self.runner.sudo(["curl", "-fSL", sha_url, "-o", str(sha_path)], stream=True, check=True)
         self.runner.sudo(["curl", "-fSL", asc_url, "-o", str(asc_path)], stream=True, check=True)
 
+        # Nextcloud's .sha256 file may include extra artifacts (e.g. *.metadata).
+        # Verify what we have, ignore missing optional entries.
         self.runner.sudo(
-            [
-                "bash",
-                "-lc",
-                (
-                    f"cd {work} && "
-                    f"line=$(grep -E '(^| )({tar_path.name})$' {sha_path.name} | tail -n 1) && "
-                    f"test -n \"$line\" && "
-                    f"echo \"$line\" | sha256sum -c"
-                ),
-            ],
+            ["bash", "-lc", f"cd {work} && sha256sum -c {sha_path.name} --ignore-missing"],
             stream=True,
             check=True,
         )
