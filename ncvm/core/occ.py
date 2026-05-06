@@ -1,8 +1,8 @@
-from __future__ import annotations
-
 """
 Bakåtkompatibelt lager: använd `ncvm.services.occ` för ny kod.
 """
+
+from __future__ import annotations
 
 from .runner import ProcessRunner, RunResult
 from ..services.occ import NextcloudOcc, OccStatus

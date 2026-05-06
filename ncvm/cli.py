@@ -7,6 +7,7 @@ import typer
 from rich import print as rprint
 from rich.pretty import Pretty
 
+from . import __version__
 from .commands.doctor import run_doctor
 from .commands.maintenance import maintenance_off, maintenance_on
 from .commands.php_fpm import optimize_php_fpm
@@ -20,6 +21,15 @@ app = typer.Typer(
     help="Nextcloud VM Service CLI (Python-tjänster, ingen bash-orchestrering).",
     no_args_is_help=True,
 )
+
+
+@app.callback(invoke_without_command=True)
+def main_callback(
+    version: bool = typer.Option(False, "--version", help="Visa ncvm-version och avsluta."),
+):
+    if version:
+        rprint(__version__)
+        raise typer.Exit(0)
 
 
 @app.command("update")
