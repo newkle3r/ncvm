@@ -7,6 +7,7 @@ from pathlib import Path
 from ..config import Settings, get_settings
 from ..core.console import console
 from ..core.runner import ProcessRunner
+from .apache import ApacheService
 from .apt import AptService
 from .nc_upgrade import NextcloudUpgradeService
 from .occ import NextcloudOcc
