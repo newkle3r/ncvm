@@ -4,14 +4,17 @@ import json
 from pathlib import Path
 
 from ..config import get_settings
-from ..core.bash import _run, require_root_or_sudo
 from ..core.occ import get_status
-from ..core.systemd import is_active
+from ..core.runner import ProcessRunner, require_root_or_sudo
+from ..services.systemd import SystemdService
 
 
 def run_doctor(*, as_json: bool = False) -> str:
     st = get_settings()
     require_root_or_sudo()
+
+    runner = ProcessRunner(echo_commands=False)
+    systemd = SystemdService(runner, st)
 
     checks: dict[str, object] = {}
     checks["paths"] = {
@@ -21,15 +24,16 @@ def run_doctor(*, as_json: bool = False) -> str:
     }
 
     checks["services"] = {
-        "apache2_active": is_active("apache2"),
-        "redis_active": is_active("redis-server"),
+        "apache2_active": systemd.is_active("apache2"),
+        "redis-server_active": systemd.is_active("redis-server"),
     }
 
-    # Basala binärer som ofta behövs
     bins = ["bash", "curl", "php", "systemctl"]
-    checks["binaries"] = {b: _run(["bash", "-lc", f"command -v {b} >/dev/null 2>&1"]).ok for b in bins}
+    checks["binaries"] = {
+        b: runner.run(["bash", "-lc", f"command -v {b} >/dev/null 2>&1"], stream=False, check=False).ok
+        for b in bins
+    }
 
-    # Nextcloud status
     occ_status = get_status()
     checks["nextcloud"] = {
         "installed": occ_status.installed,
@@ -40,7 +44,6 @@ def run_doctor(*, as_json: bool = False) -> str:
     if as_json:
         return json.dumps(checks, ensure_ascii=False, indent=2)
 
-    # Textläge
     lines: list[str] = []
     lines.append("Doctor-rapport")
     lines.append("")
@@ -60,4 +63,3 @@ def run_doctor(*, as_json: bool = False) -> str:
     for k, v in (checks["nextcloud"] or {}).items():  # type: ignore[union-attr]
         lines.append(f"  - {k}: {v}")
     return "\n".join(lines)
-

@@ -3,21 +3,24 @@ from __future__ import annotations
 from dataclasses import asdict
 
 from ..core.occ import OccStatus, get_status
-from ..core.systemd import is_active
+from ..core.runner import ProcessRunner
+from ..services.systemd import SystemdService
 
 
 def get_full_status() -> dict:
-    occ_status: OccStatus = get_status()
+    st_occ: OccStatus = get_status()
+    runner = ProcessRunner(echo_commands=False)
+    systemd = SystemdService(runner)
+
     services = {
-        "apache2": is_active("apache2"),
-        "redis-server": is_active("redis-server"),
+        "apache2": systemd.is_active("apache2"),
+        "redis-server": systemd.is_active("redis-server"),
     }
-    # php-fpm tjänstnamn varierar; prova de vanligaste
     php_fpm_candidates = ["php8.3-fpm", "php8.2-fpm", "php8.1-fpm", "php-fpm"]
     php_fpm = None
     for svc in php_fpm_candidates:
         try:
-            if is_active(svc):
+            if systemd.is_active(svc):
                 php_fpm = svc
                 break
         except Exception:
@@ -26,7 +29,6 @@ def get_full_status() -> dict:
     services["php-fpm-service"] = php_fpm
 
     return {
-        "nextcloud": asdict(occ_status),
+        "nextcloud": asdict(st_occ),
         "services": services,
     }
-

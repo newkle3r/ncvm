@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-from ..core.bash import CmdResult, source_lib_and_call
+from ..core.runner import ProcessRunner
+from ..services.php import PhpService
 
 
-def optimize_php_fpm() -> CmdResult:
-    # använder samma logik som VM: calculate_php_fpm -> restart_webserver
-    return source_lib_and_call("calculate_php_fpm", stream=True)
-
+def optimize_php_fpm() -> None:
+    PhpService(ProcessRunner()).calculate_php_fpm()

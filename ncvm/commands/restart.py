@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from ..core.bash import CmdResult, source_lib_and_call
+from ..core.runner import ProcessRunner
+from ..services.php import PhpService
 
 
-def restart_webserver() -> CmdResult:
-    return source_lib_and_call("restart_webserver", stream=True)
-
+def restart_webserver() -> None:
+    PhpService(ProcessRunner()).restart_webserver_stack()

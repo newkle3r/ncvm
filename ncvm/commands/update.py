@@ -1,42 +1,35 @@
 from __future__ import annotations
 
-from ..core.bash import CmdResult, run_script
-from ..core.embedded_scripts import run_embedded_script
+from ..core.console import console
+from ..core.runner import RunError
+from ..services.update_service import UpdateService
 
 
-class UpdateFlavor:
-    VM = "vm"  # kör /var/scripts/{n,pp}.sh (hämtas från GitHub om saknas)
-    CUSTOMER = "customer"  # kör inbyggda scriptmallar (de ni använder för kunder)
-
-
-def update_nc(
+def run_update(
+    target: str,
     *,
-    dry_run: bool = False,
-    flavor: str = UpdateFlavor.CUSTOMER,
-    debug: bool = False,
-    keep_tmp: bool = False,
-) -> CmdResult:
-    args: list[str] = []
-    if dry_run:
-        args.append("--dry-run")
-    if flavor == UpdateFlavor.VM:
-        return run_script("n", args, sudo=True)
-    env = {"DEBUG": "1"} if debug else None
-    return run_embedded_script("n.sh", sudo=True, env=env, keep_tmp=keep_tmp)
-
-
-def update_php(
-    *,
-    dry_run: bool = False,
-    flavor: str = UpdateFlavor.CUSTOMER,
     phpver: str | None = None,
-    keep_tmp: bool = False,
-) -> CmdResult:
-    args: list[str] = []
-    if dry_run:
-        args.append("--dry-run")
-    if flavor == UpdateFlavor.VM:
-        return run_script("pp", args, sudo=True)
-    env = {"PHPVER": phpver} if phpver else None
-    return run_embedded_script("pp.sh", sudo=True, env=env, keep_tmp=keep_tmp)
-
+    dry_run: bool = False,
+    skip_backup: bool = False,
+    debug: bool = False,
+) -> int:
+    try:
+        svc = UpdateService(debug=debug)
+        target = target.lower().strip()
+        if target == "nc":
+            r = svc.update_nextcloud(dry_run=dry_run, skip_backup=skip_backup)
+            return 0 if r.ok else 1
+        if target == "php":
+            r = svc.update_php(phpver=phpver, dry_run=dry_run)
+            return 0 if r.ok else 1
+        if target == "all":
+            r = svc.update_all(phpver=phpver, dry_run=dry_run, skip_backup=skip_backup)
+            return 0 if r.ok else 1
+        console.print("[red]target måste vara nc, php eller all[/red]")
+        return 2
+    except RunError as e:
+        console.print(f"[red]{e}[/red]")
+        return e.returncode
+    except Exception as e:
+        console.print(f"[red]{type(e).__name__}: {e}[/red]")
+        return 1

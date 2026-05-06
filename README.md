@@ -1,6 +1,6 @@
 # ncvm
 
-`ncvm` är ett Python CLI som orkestrerar Nextcloud VM-skripten (`lib.sh`, `n.sh`, `pp.sh`) utan att duplicera deras logik.
+`ncvm` är ett Python CLI för service av Nextcloud VM (Ubuntu). **Uppdateringslogiken körs i Python** (`ncvm/services/`) och anropar systemverktyg (`apt`, `systemctl`, `occ`, …) via subprocess med **live-streamad** utskrift och logg till `/var/log/nextcloud/ncvm.log` (om katalogen finns).
 
 ## Installera (pipx)
 
@@ -9,31 +9,29 @@ pipx install .
 ncvm --help
 ```
 
-## Exempel
+## Kommandon
 
 ```bash
+# Nextcloud: ladda ner senaste release, verifiera (sha256+gpg), rsync till installation, occ upgrade
 ncvm update nc
-ncvm update php
-ncvm update all
+ncvm update nc --skip-backup --debug
 
-# Använd kund-skripten (inbyggda i ncvm) + överstyr PHP-version
-ncvm update php --flavor customer --phpver 8.3
-ncvm update nc --flavor customer --debug --keep-tmp
+# PHP-stack (PPA ondrej vid behov), FPM-pool, OPcache, moduler, Redis-server + Nextcloud Redis-config
+ncvm update php --phpver 8.3
 
-# Använd VM-standard (kör /var/scripts/{n,pp}.sh och hämta från GitHub om saknas)
-ncvm update all --flavor vm
+# Först Nextcloud, sedan PHP
+ncvm update all --phpver 8.3
 
-ncvm status
+ncvm status --json
 ncvm maintenance on
 ncvm maintenance off
-
 ncvm restart
 ncvm php-fpm optimize
 ncvm doctor
 ```
 
-## Krav i målmiljön
+## Krav
 
-- Ubuntu/Nextcloud VM (körs normalt som root/sudo)
-- `curl` installerat (för att hämta `*.sh` från GitHub när de saknas lokalt)
-- `systemctl` (för restart/status)
+- Ubuntu-server med Nextcloud under `/var/www/nextcloud` (standard VM)
+- Root eller `sudo`
+- `curl`, `gpg`, `rsync`, `tar` (för NC-uppgradering)

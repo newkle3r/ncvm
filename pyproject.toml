@@ -21,7 +21,6 @@ ncvm = "ncvm.cli:app"
 
 [tool.hatch.build.targets.wheel]
 packages = ["ncvm"]
-include = ["ncvm/scripts/*.sh"]
 
 [tool.ruff]
 line-length = 100
